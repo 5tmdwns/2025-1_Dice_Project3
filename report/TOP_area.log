@@ -1,0 +1,54 @@
+ 
+****************************************
+Report : area
+Design : TOP
+Version: S-2021.06-SP4
+Date   : Wed Jun 18 22:05:59 2025
+****************************************
+
+Library(s) Used:
+
+    saed14rvt_ss0p72v125c (File: /home/eda/pdk/gpdk/14n/SAED14nm_EDK_06052019/stdcell_rvt/db_nldm/saed14rvt_ss0p72v125c.db)
+
+Number of ports:                          167
+Number of nets:                           650
+Number of cells:                          517
+Number of combinational cells:            424
+Number of sequential cells:                82
+Number of macros/black boxes:               0
+Number of buf/inv:                         64
+Number of references:                      34
+
+Combinational area:                156.865200
+Buf/Inv area:                       17.049599
+Noncombinational area:              85.603203
+Macro/Black Box area:                0.000000
+Net Interconnect area:             306.354653
+
+Total cell area:                   242.468403
+Total area:                        548.823055
+
+Hierarchical area distribution
+------------------------------
+
+                                  Global cell area          Local cell area
+                                  ------------------  --------------------------- 
+Hierarchical cell                 Absolute   Percent  Combi-    Noncombi-  Black-
+                                  Total      Total    national  national   boxes   Design
+--------------------------------  ---------  -------  --------  ---------  ------  -----------------------------------
+TOP                                242.4684    100.0   76.1460    29.0376  0.0000  TOP
+add_87                               3.9516      1.6    3.9516     0.0000  0.0000  TOP_DW01_inc_0_DW01_inc_2
+mainclock                           78.8544     32.5   50.0388    25.6188  0.0000  DIGITALCLOCK
+mainclock/clk_gate_DATE_reg          0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_DIGITALCLOCK_0
+mainclock/clk_gate_HOUR_reg          0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_DIGITALCLOCK_2
+mainclock/clk_gate_MINUTE_reg        0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_DIGITALCLOCK_3
+mainclock/clk_gate_SECOND_reg        0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_DIGITALCLOCK_1
+stopwatch                           54.4788     22.5   26.7288    24.5532  0.0000  STOPWATCH
+stopwatch/clk_gate_DATE_reg          0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_STOPWATCH_2
+stopwatch/clk_gate_HOUR_reg          0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_STOPWATCH_1
+stopwatch/clk_gate_MINUTE_reg        0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_STOPWATCH_3
+stopwatch/clk_gate_SECOND_reg        0.7992      0.3    0.0000     0.7992  0.0000  SNPS_CLOCK_GATE_HIGH_STOPWATCH_0
+--------------------------------  ---------  -------  --------  ---------  ------  -----------------------------------
+Total                                                 156.8652    85.6032  0.0000
+
+1
