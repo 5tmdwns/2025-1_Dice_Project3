@@ -1,2 +1,5 @@
-# 2025-1_Dice_Project3
-경희대학교 2025-1학기 디지털집적회로모델링실험 프로젝트3
+<p align="center">
+  <h1 align="center">디지털 시계 RTL 기반 Synthesis 최적화✨</h1>
+</p>
+
+(코드 수정중)
