@@ -95,7 +95,7 @@ report_area
 &nbsp;위의 `report_area` 결과에서 Area : 1330.61의 결과를 확인할 수 있었습니다. <br/>
 이후, 더 줄일 방법이 없을까 생각하던 중, DC Shell `compile` 명령어의 옵션을 찾아봤습니다. <br/>
 
-- `-gate_clock` : -gate_clock 옵션 사용 시, Clock Gating이 set_clock_gating_style 커맨드에 의해 디자인을 바라보며 적용됩니다. 또한 Scenarios에 무관하게 삽입됩니다.
+- `-gate_clock` : -gate_clock 옵션 사용 시, Clock Gating이 `set_clock_gating_style` 커맨드에 의해 디자인을 바라보며 적용됩니다. 또한 Scenarios에 무관하게 삽입됩니다.
 - `-auto_ungroup area` : Area 기반으로 자동적으로 Hierarchies를 Ungroup 시켜줍니다.
 - `-ungroup_all` : 현재 디자인 Hierarchy의 모든 Lower Levels을 제거합니다.
 
