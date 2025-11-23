@@ -38,8 +38,8 @@ Dynamic Power 수식의 관점에서 보자면, <br/>
 P_{d} = \alpha CV_{DD}^{2}f
 ```
 - $\alpha$ : 회로의 Switching 활성율 (Performance vs Power)
-- $\C$ : 부하 Capacitance (Performance vs Power/Area)
-- $\V_{DD}$ : 동작 전압 (Performance vs Power)
+- $C$ : 부하 Capacitance (Performance vs Power/Area)
+- $V_{DD}$ : 동작 전압 (Performance vs Power)
 - $f$ : Clock Frequency (Performance vs Power)
 
 &nbsp;위와같이 $\alpha$가 커지면, Performance는 올라가나 Power도 같이 커지기 때문이고, $C$가 커진다는 것은 Cell Size를 키워 Drive Strength를 높여 Performance를 키우겠다는 소리인데, 이는 Performance vs Power/Area에 귀결됩니다. <br/>
