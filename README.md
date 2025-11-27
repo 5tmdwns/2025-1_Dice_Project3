@@ -99,6 +99,50 @@ report_area
 - `-auto_ungroup area` : Area 기반으로 자동적으로 Hierarchies를 Ungroup 시켜줍니다.
 - `-ungroup_all` : 현재 디자인 Hierarchy의 모든 Lower Levels을 제거합니다.
 
+&nbsp;compile 옵션 중, `compile -gate_clock`, `compile -auto_ungroup area -gate_clock`, `compile -ungroup_all -gate_clock` 비교 후, Area측에서 이득을 보는 `compile -auto_ungroup area -gate_clock`을 사용하였습니다. <br/>
+<table>
+  <tr>
+    <td align="center"><img width="100%" alt="version 1 compile" src="https://github.com/user-attachments/assets/a572d776-937b-4b99-81b0-016ca54b0880" /></td>
+    <td align="center"><img width="100%" alt="version 1 compile -gate_clock" src="https://github.com/user-attachments/assets/46cf5994-0ad5-430e-a0ec-b8f62ef8ad62" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+compile
+```
+      
+  </td>
+    <td align="center">
+
+```
+compile -gate_clock
+```
+      
+  </td>
+  </tr>
+  <tr>
+    <td align="center"><img width="100%" alt="version 1 compile -ungroup_all -gate_clock" src="https://github.com/user-attachments/assets/1adbdc83-fd0d-4648-bc12-45fa77588c40" /></td>
+    <td align="center"><img width="100%" alt="version1 compile -auto_ungroup area -gate_clock" src="https://github.com/user-attachments/assets/410a8598-926c-4200-820e-e45501d54d55" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+compile -ungroup_all -gate_clock
+```
+      
+  </td> 
+  <td align="center">
+
+```
+compile -auto_ungroup area -gate_clock
+```
+  
+  </td>
+  </tr>
+</table>
+
 <table align="center">
   <tr>
     <td align="center"> Performance </td>
