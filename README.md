@@ -301,18 +301,176 @@ report_power
 이후, 해당하는 3 Bit에 대한 3 Input DECODE7SEG Boolean Equation Combinational Logic을 또 만들어 주었습니다. <br/>
 그리고, 디바운스 모듈에 사용되는 Register를 간소화하고, SW에서 Output Port까지 Combinational Logic이 길어 발생하는 Setup Timing Violation을 잡기 위해, TOP에서 Register를 삽입하여 Pipelining을 하였습니다. <br/>
 
-<table>
+<table align="center">
   <tr>
     <td>
 
 ``` verilog
 ...
+// DIGITALCLOCK
 wire [3:0] MAIN_SEG0, MAIN_SEG1, MAIN_SEG2, MAIN_SEG3;
 wire [3:0] MAIN_SEG4, MAIN_SEG5, MAIN_SEG6, MAIN_SEG7;
+
+// STOPWATCH
+wire [3:0] SUB_SEG0, SUB_SEG1, SUB_SEG2, SUB_SEG3;
+wire [3:0] SUB_SEG4, SUB_SEG5, SUB_SEG6, SUB_SEG7;
+
+// SEG_CLOCK (, SEG_ALARM)
+wire [3:0] SET_SEC0, SET_SEC1, SET_MIN0, SET_MIN1;
+wire [3:0] SET_HOUR0, SET_HOUR1, SET_DATE0, SET_DATE1;
+...
 ```
       
-    </td>
+  </td>
+  <td>
+
+``` verilog
+...
+// DIGITALCLOCK
+wire [3:0] MAIN_SEG0;
+wire [2:0] MAIN_SEG1;
+wire [3:0] MAIN_SEG2;
+wire [2:0] MAIN_SEG3;
+wire [3:0] MAIN_SEG4;
+wire [2:0] MAIN_SEG5;
+wire [3:0] MAIN_SEG6;
+wire [2:0] MAIN_SEG7;
+
+// STOPWATCH
+wire [3:0] SUB_SEG0;
+wire [2:0] SUB_SEG1;
+wire [3:0] SUB_SEG2;
+wire [2:0] SUB_SEG3;
+wire [3:0] SUB_SEG4;
+wire [2:0] SUB_SEG5;
+wire [3:0] SUB_SEG6;
+wire [2:0] SUB_SEG7;
+
+// SET_CLOCK (,SET_ALARM)
+wire [3:0] SET_SEC0;
+wire [2:0] SET_SEC1;
+wire [3:0] SET_MIN0;
+wire [2:0] SET_MIN1;
+wire [3:0] SET_HOUR0;
+wire [2:0] SET_HOUR1;
+wire [3:0] SET_DAY0;
+wire [2:0] SET_DAY1;
+...
+```    
+  </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><strong>십의자리 3bit 사용</strong></td>
   </tr>
 </table>
 
+<table align="center">
+  <tr>
+    <td>
 
+``` verilog
+module DECODE7SEG1(/*AUTOARG*/
+          // Outputs
+          OUT,
+          // Inputs
+          IN
+          );
+  input [2:0] IN;
+  output [6:0] OUT;
+
+  wire     i2 = IN[2];
+  wire     i1 = IN[1];
+  wire     i0 = IN[0];
+
+  assign OUT[6] = (~i2 & ~i1) | (i2 & i1 & i0);
+  assign OUT[5] = (~i2 & (i1 | i0)) | (i2 & i1 & i0);
+  assign OUT[4] = i0 | (i2 & ~i1 & ~i0);
+  assign OUT[3] = (~i2 & ~i1 & i0) | (i2 & ~i1 & ~i0);
+  assign OUT[2] = (~i2 & i1 & ~i0);
+  assign OUT[1] = i2 & (i1 ^ i0);
+  assign OUT[0] = ~i1 & (i2 ^ i0);
+
+endmodule
+```
+      
+  </td>
+    <td>
+      
+``` verilog
+...
+  wire     SW1_DB = &SW1_shift;
+  wire     SW2_DB = &SW2_shift;
+  wire     SW3_DB = &SW3_shift;
+
+  wire     prev_SW2 = SW_shift[2];
+
+  // SW pipelining
+  always @(posedge CLK100 or negedge RSTN) begin
+      if (!RSTN) begin
+    SW1_shift <= 3'd0;
+    SW2_shift <= 3'd0;
+    SW3_shift <= 1'd0;
+      end
+      else begin
+    SW1_shift <= {SW1_shift[1:0], SW1};
+    SW2_shift <= {SW2_shift[1:0], SW2};
+    SW3_shift <= {SW3_shift[1:0], SW3};
+      end
+  end
+...
+```
+      
+  </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>3 Input DECODE7SEG</strong></td>
+    <td align="center"><strong>Debounce 처리 Pipelining</strong></td>
+  </tr>
+</table>
+
+&nbsp;Synthesis 이후, 해당 코드들의 Schematic을 Design Vision으로 봤습니다. <br/>
+다음은 Version 2와의 비교 사진 입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 2. DECODE7SEG Schematic" src="https://github.com/user-attachments/assets/b867789f-9247-4131-92e0-ca36105b7cf3" /></td>
+    <td align="center"><img width="100%" alt="Version 3. DECODE7SEG Schematic" src="https://github.com/user-attachments/assets/5347a6b1-de3a-4b68-864a-0d306fbf7636" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Version 2. DECODE7SEG</strong></td>
+    <td align="center"><strong>Version 3. DECODE7SEG</strong></td>
+  </tr>
+  <tr>
+    <td align="center"><img width="100%" alt="Version 2. Debouncing" src="https://github.com/user-attachments/assets/c46a8029-c7fe-4d9f-8d3f-49de8421f76a" /></td>
+    <td align="center"><img width="100%" alt="Version 3. Debouncing" src="https://github.com/user-attachments/assets/2709d390-2714-4514-886b-1788228d72d8" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Version 2. Debouncing</strong></td>
+    <td align="center"><strong>Version 3. Debouncing</strong></td>
+  </tr>
+</table>
+
+&nbsp;다음은 `report_area`와 `report_power`의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 3. report_area" src="https://github.com/user-attachments/assets/a08d31cd-b7f2-46a0-a6a1-569a098697f3" /></td>
+    <td align="center"><img width="100%" alt="Version 3. report_power" src="https://github.com/user-attachments/assets/251b8d14-1720-41e5-8f76-de9632358a0d" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+report_area
+```
+      
+  </td>
+    <td align="center">
+
+```
+report_power
+```
+      
+  </td>  
+  </tr>
+</table>
