@@ -668,6 +668,7 @@ report_power
 &nbsp; 이제 Combinational Logic만 줄이다 보니까, Register를 줄이는 것이 훨씬 더 면적이 줄어드는 것을 체감했습니다. <br/>
 영혼까지 Comb를 줄여서 더 이상 줄일 것이 없었습니다. <br/>
 그래서, 현재 시간을 BCD 카운터를 통해 DECODE7SEG로 Input을 보내고 있었는데, 해당 BCD 카운터를 Binary 카운터로 변경하는 것이 더 Register를 적게 잡아 먹을거라 생각하고 수정했습니다. <br/>
+그리고, Binary로 센 수를 BCD에 맞춰서 넣기위한 로직을 나눗셈 연산대신 BIN2BCD 모듈로 제작했습니다. <br/>
 
 <table align="center">
   <tr>
@@ -713,7 +714,54 @@ else begin
   </tr>
 </table>
 
-&nbsp; 해당 카운터 변경의 Schematic 비교는 다음과 같습니다. <br/>
+<table align="center">
+  <tr>
+    <td>
+
+``` verilog
+module BIN2BCD_HOUR_DATE(/*AUTOARG*/
+            // Outputs
+            TENS, UNITS,
+            // Inputs
+            VALUE
+            );
+  input [4:0] VALUE;
+  output [1:0] TENS;
+  output [3:0] UNITS;
+
+  reg [3:0] t, u;
+  integer i;
+
+  always @(*) begin
+      t = 4'd0;
+      u = 4'd0;
+      for (i = 4; i >= 0; i - 1) begin
+        if (u[3] | (u[2] & (u[1] | u[0]))) u = u + 4'd3;
+        {t, u} = {t, u, VALUE[i]};
+      end
+  end
+
+  assign TENS = t[1:0];
+  assign UNITS = u;
+
+endmodule
+```
+      
+  </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>BIN2BCD Module</strong></td>
+  </tr>
+</table>
+
+&nbsp;위 모듈은 비트 Binary 입력(`VALUE[4:0]`) → 2자리 BCD(`TENS`, `UNITS`)로 변환시키는 모듈 입니다. <br/>
+예를 들어 `VALUE = 5'b10110(=22)`이라면, `TENS = 2`, `UNITS = 2` 처럼, 10진수 십의 자리/일의 자리로 변환해줍니다. <br/>
+Double Dabble Algorithm (Shift-Add-3) BCD 변환 전용 알고리즘을 사용하여, 다음 두 동작을 반복하게 합니다. <br/>
+  1. 각 BCD Digit이 5 이상이면 +3
+  2. 왼쪽으로 1비트 Shift하면서 새 Binary 비트를 넣음
+이 과정을 반복하면 Binary → BCD 변환이 완성됩니다. <br/>
+
+&nbsp;해당 카운터 변경의 Schematic 비교는 다음과 같습니다. <br/>
 
 <table align="center">
   <tr>
@@ -766,3 +814,185 @@ report_power
   </tr>
 </table>
 
+### Version 6
+&nbsp; 이번에는 DIGITALCLOCK 모듈과 SET_CLOCK 모듈을 일원화 했습니다. <br/>
+어차피, Manual Setting Mode로 시간을 변경하면, DIGITALCLOCK의 기본 동작 시간이 바뀌기 때문에 DIGITALCLOCK 안으로 넣어도 될 것 같다고 생각했습니다. <br/>
+따라서 SET_CLOCK의 기존 모듈을 그대로 DIGITALCLOCK 모듈안으로 넣고, DIGITALCLOCK 모듈에 작성한 Register를 이용하여 해당 기능을 DIGITALCLOCK 모듈 안에서 구현했습니다. <br/>
+구현하고 Synthesis 후, 각각의 Schematic을 분석한 결과 입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 6. DIGITALCLOCK & SET_CLOCK Schematic" src="https://github.com/user-attachments/assets/245502cf-6621-4e08-949e-6a6eb273eb6a" /></td>
+    <td align="center"><img width="100%" alt="Version 6. DIGITALCLOCK Schematic" src="https://github.com/user-attachments/assets/6fe28629-b020-4921-bcb7-5593bf3465ae" />
+</td>
+  </tr>
+  <tr>
+    <td align="center"><strong>DIGITALCLOCK과 SET_CLOCK의 Schematic</strong></td>
+    <td align="center"><strong>DIGITALCLOCK 일원화 Schematic</strong></td>
+  </tr>
+</table>
+
+&nbsp;다음은 `report_area`와 `report_power`의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 6. report_area" src="https://github.com/user-attachments/assets/8e0a50cd-5edd-42ee-ada0-e231f8beaf61" /></td>
+    <td align="center"><img width="100%" alt="Version 6. report_power" src="https://github.com/user-attachments/assets/e629d9e2-4d1e-413c-b57c-089a0bac10d4" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+report_area
+```
+      
+  </td>
+    <td align="center">
+
+```
+report_power
+```
+      
+  </td>  
+  </tr>
+</table>
+
+&nbsp;Version 5 -> Version 6로의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">1ns</td>
+    <td align="center">35.52uW -> 36.27uW</td>
+    <td align="center">756.45 -> 605.42</td>
+  </tr>
+</table>
+
+### Final
+&nbsp; Single Main Clock을 사용하다가, 결국 Generated Clock을 사용했습니다...😂 <br/>
+사실 쓰지 않을려고 했지만, 토글량이 다르기 때문에, 다른 조와 비교하여 Power와 Area 측면에서는 꼭 이점을 가져가야 했습니다... <br/>
+그래서, 100HZ Clock을 같은 도메인 Main Clock으로 부터 생성시키기 위해 SDC를 다음과 같이 작성했습니다. <br/>
+
+``` shell
+create_generated_clock -name "CLK1KX10" -divide_by 10 -source [get_ports CLK1K] [get_pins gen_clock/CLK100_reg/Q]
+```
+
+Synthesis 이후, Schematic으로 해당 부분으로 Generated Clock이 생성되었습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Final. Schematic" src="https://github.com/user-attachments/assets/8877d152-6cc2-4f7b-b34c-1b184327fb32" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Fianl Schematic</strong></td>
+  </tr>
+</table>
+
+&nbsp;아직도, 1ns에서의 SDC를 작성하고 있기 때문에, 해당 1ns의 `report_area`와 `report_power`의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Final. report_area" src="https://github.com/user-attachments/assets/21753113-f7f2-41bc-81a1-022bf9888e0e" /></td>
+    <td align="center"><img width="100%" alt="Final. report_power" src="https://github.com/user-attachments/assets/1f0298ff-477d-45e6-84d3-1cb68f17bb55" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+report_area
+```
+      
+  </td>
+    <td align="center">
+
+```
+report_power
+```
+      
+  </td>  
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">1ns</td>
+    <td align="center">36.27uW -> 14.14uW</td>
+    <td align="center">605.42 -> 548.41</td>
+  </tr>
+</table>
+
+&nbsp;이제, 3ns로 다시 풀어서 `report_area`, `report_power`한 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Final. 3ns report_area" src="https://github.com/user-attachments/assets/0fb45eb1-4e92-46c3-a356-3b893acee25f" /></td>
+    <td align="center"><img width="100%" alt="Final. 3ns report_power" src="https://github.com/user-attachments/assets/dc762b16-d5bd-405e-bf41-5e91440eb002" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+report_area
+```
+      
+  </td>
+    <td align="center">
+
+```
+report_power
+```
+      
+  </td>  
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">3ns</td>
+    <td align="center">14.14uW -> 5.85uW</td>
+    <td align="center">548.41 -> 548.82</td>
+  </tr>
+</table>
+
+## 4. Result
+&nbsp;결론적으로 다음과 같은 Spec을 지닌 디지털시계를 설계했습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">3ns</td>
+    <td align="center">5.85uW</td>
+    <td align="center">548.82</td>
+  </tr>
+</table>
+
+&nbsp;Testbench에서의 All-Pass는 물론 `TCK`, `ASYNCDEL`과 총 Total Time은 다음과 같습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Testbench Spec" src="https://github.com/user-attachments/assets/fa9e147b-73af-405b-8bf2-99c79c648bbc" /></td>
+    <td align="center"><img width="100%" alt="Testbench Time" src="https://github.com/user-attachments/assets/cf41f8f9-02b8-4db8-9ded-47594fed5fbe" /></td>
+  </tr>
+  <tr>
+    <td align="center">TCK, ASYNCDEL</td>
+    <td align="center">Total Time</td>
+  </tr>
+</table>
