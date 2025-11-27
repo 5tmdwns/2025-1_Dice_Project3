@@ -50,7 +50,8 @@ Design Compiler로 Synthesis과정 진행 시, Performance는 1ns로 고정하�
 ### Version 1
 &nbsp;우선 프로젝트1에서 조원과의 디지털시계 RTL 코드과 다르기 때문에, Design Compiler를 이용해 기본적인 `compile` 명령어로 Synthesis 결과를 비교하여 어떤 코드를 최적화할지 결정했습니다. <br/>
 제 코드와 조원 코드의 결과를 비교한 사진입니다. <br/>
-<table>
+
+<table align="center">
   <tr>
     <td align="center"><img width="100%" alt="Version 1 Schematic 1" src="https://github.com/user-attachments/assets/c145a7c1-9720-47b3-b6cc-8c4478b6e560" /></td>
     <td align="center"><img width="100%" alt="Version 1 Schematic 2" src="https://github.com/user-attachments/assets/e954c68d-27cc-47a7-89f5-a5eb07211220" /></td>
@@ -100,7 +101,8 @@ report_area
 - `-ungroup_all` : 현재 디자인 Hierarchy의 모든 Lower Levels을 제거합니다.
 
 &nbsp;compile 옵션 중, `compile -gate_clock`, `compile -auto_ungroup area -gate_clock`, `compile -ungroup_all -gate_clock` 비교 후, Area측에서 이득을 보는 `compile -auto_ungroup area -gate_clock`을 사용하였습니다. <br/>
-<table>
+
+<table align="center">
   <tr>
     <td align="center"><img width="100%" alt="version 1 compile" src="https://github.com/user-attachments/assets/a572d776-937b-4b99-81b0-016ca54b0880" /></td>
     <td align="center"><img width="100%" alt="version 1 compile -gate_clock" src="https://github.com/user-attachments/assets/46cf5994-0ad5-430e-a0ec-b8f62ef8ad62" /></td>
@@ -133,7 +135,7 @@ compile -ungroup_all -gate_clock
 ```
       
   </td> 
-  <td align="center">
+  <td>
 
 ```
 compile -auto_ungroup area -gate_clock
@@ -153,5 +155,101 @@ compile -auto_ungroup area -gate_clock
     <td align="center">1ns</td>
     <td align="center">87.55</td>
     <td align="center">1157.73</td>
+  </tr>
+</table>
+
+### Version 2
+&nbsp; 우선, 면적을 줄일 곳을 찾다가, 4-to-7 Decoder에서 Case문의 Default부분을 Don't Care처리해서 다음과 같은 Boolean Equation으로 변경하였습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td>
+
+``` verilog
+module DECODE7SEG(/*AUTOARG*/
+            // Outputs
+            OUT,
+            // Inputs
+            IN
+            );
+  input [3:0] IN;
+  output reg [6:0] OUT;
+  // Internal signal declarations
+
+  // Combinational logic
+  always @(*) begin
+    case (IN)
+  4'h0 : OUT = 7'b1000000;
+  4'h1 : OUT = 7'b1111001;
+  4'h2 : OUT = 7'b0100100;
+  4'h3 : OUT = 7'b0110000;
+  4'h4 : OUT = 7'b0011001;
+  4'h5 : OUT = 7'b0010010;
+  4'h6 : OUT = 7'b0000010;
+  4'h7 : OUT = 7'b1111000;
+  4'h8 : OUT = 7'b0000000;
+  4'h9 : OUT = 7'b0010000;
+  default : OUT = 7'b1111111;
+    endcase
+  end
+endmodule
+```
+
+  </td>
+  <td>
+
+``` verilog
+module DECODE7SEG(/*AUTOARG*/
+          // Outputs
+          OUT,
+          // Inputs
+          IN
+          );
+  input [3:0] IN;
+  output [6:0] OUT;
+
+  wire         i3 = IN[3];
+  wire         i2 = IN[2];
+  wire         i1 = IN[1];
+  wire         i0 = IN[0];
+
+  wire         w012 = i0 & i1 & i2;
+  wire         w_n1n2n3 = ~i1 & ~i2 & ~i3;
+
+  assign OUT[6] = w012 | w_n1n2n3;
+  assign OUT[5] = (i0 & i1) | (i1 & ~i2) | (i0 & ~i2 & ~i3);
+  assign OUT[4] = i0 | (i2 & ~i1);
+  assign OUT[3] = w012 | (i2 & ~i0 & ~i1) | (i0 & ~i1 & ~i2 & ~i3);
+  assign OUT[2] = i1 & ~i0 & ~i2;
+  assign OUT[1] = (i0 & i2 & ~i1) | (i1 & i2 & ~i0);
+  assign OUT[0] = (i2 & ~i0 & ~i1) | (i0 & ~i1 & ~i2 & ~i3);
+
+endmodule
+```
+
+  </td>
+  </tr>
+</table>
+
+&nbsp;변경 후, DECODE7SEG의 Synthesis 이후의 Schematic을 비교하고, Hierarchical Cell Area의 결과를 비교해봤습니다. <br/>
+<table align="center">
+  <tr>
+    <td align="center"><img width="60%" alt="Version 1. DECODE7SEG Schematic" src="https://github.com/user-attachments/assets/89b3f526-8cbf-4509-a12f-8a6d273b7017" /></td>
+    <td align="center"><img width="60%" alt="Version 2. DECODE7SEG Schematic" src="https://github.com/user-attachments/assets/9eab810c-5939-48b6-944c-0fc4574dff34" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Version 1. DECODE7SEG</strong></td>
+    <td align="center"><strong>Version 2. DECODE7SEG</strong></td>
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 1. DECODE7SEG Hierarchical Cell Area" src="https://github.com/user-attachments/assets/f114a8a2-6786-4f3b-a058-fa065c96f4bd" /></td>
+    <td align="center"><img width="100%" alt="Version 2. DECODE7SEG Hierarchical Cell Area" src="https://github.com/user-attachments/assets/b63d5acb-e69d-4909-8a41-4447108c80be" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Version 1. DECODE7SEG Hierarchical Cell Area</strong></td>
+    <td align="center"><strong>Version 2. DECODE7SEG Hierarchical Cell Area</strong></td>
   </tr>
 </table>
