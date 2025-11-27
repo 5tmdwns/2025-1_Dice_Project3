@@ -147,18 +147,19 @@ compile -auto_ungroup area -gate_clock
 
 <table align="center">
   <tr>
-    <td align="center"> Performance </td>
-    <td align="center"> Power </td>
-    <td align="center"> Area </td>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
   </tr>
   <tr>
     <td align="center">1ns</td>
-    <td align="center">87.55</td>
+    <td align="center">87.55uW</td>
     <td align="center">1157.73</td>
   </tr>
 </table>
 
 ### Version 2
+#### Case문 카르노맵을 이용한 Boolean Equation
 &nbsp; 우선, 면적을 줄일 곳을 찾다가, 4-to-7 Decoder에서 Case문의 Default부분을 Don't Care처리해서 다음과 같은 Boolean Equation으로 변경하였습니다. <br/>
 
 <table align="center">
@@ -253,3 +254,65 @@ endmodule
     <td align="center"><strong>Version 2. DECODE7SEG Hierarchical Cell Area</strong></td>
   </tr>
 </table>
+
+&nbps;Global Cell Area가 각 Cell 마당 2.22정도 줄어들었습니다. <br/>
+이후, `reaport_area`와 `report_power`의 결과는 다음과 같습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 2. report_area" src="https://github.com/user-attachments/assets/976d0b57-0eef-406b-959d-a379d8553c6f" /></td>
+    <td align="center"><img width="100%" alt="Version 2. report_power" src="https://github.com/user-attachments/assets/37985b66-8e5f-4b4d-9e21-a1dc2a00a7b2" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+      
+```
+report_area
+```
+  
+  </td>
+    <td align="center">
+
+```
+report_power
+```      
+
+  </td>
+  </tr>
+</table>
+
+&nbsp;Version 1 -> Version 2로의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">1ns</td>
+    <td align="center">87.55uW -> 76.24uW</td>
+    <td align="center">1157.73 -> 1098.90</td>
+  </tr>
+</table>
+
+### Version 3
+&nbsp; 곰곰히 생각해보니, 날짜/시/분/초의 십의자리는 최대 5까지밖에 표현하지 않으니까 3 Bit만 사용해도 되어서 그에 따른 Register도 줄이겠다고 생각했습니다. <br/>
+이후, 해당하는 3 Bit에 대한 3 Input DECODE7SEG Boolean Equation Combinational Logic을 또 만들어 주었습니다. <br/>
+그리고, 디바운스 모듈에 사용되는 Register를 간소화하고, SW에서 Output Port까지 Combinational Logic이 길어 발생하는 Setup Timing Violation을 잡기 위해, TOP에서 Register를 삽입하여 Pipelining을 하였습니다. <br/>
+
+<table>
+  <tr>
+    <td>
+
+``` verilog
+...
+wire [3:0] MAIN_SEG0, MAIN_SEG1, MAIN_SEG2, MAIN_SEG3;
+wire [3:0] MAIN_SEG4, MAIN_SEG5, MAIN_SEG6, MAIN_SEG7;
+```
+      
+    </td>
+  </tr>
+</table>
+
+
