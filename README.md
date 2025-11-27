@@ -474,3 +474,295 @@ report_power
   </td>  
   </tr>
 </table>
+
+
+&nbsp;Version 2 -> Version 3로의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">1ns</td>
+    <td align="center">76.24uW -> 49.63uW</td>
+    <td align="center">1098.90 -> 918.37</td>
+  </tr>
+</table>
+
+### Version 4
+&nbsp; 초/분/시/날짜 중, 시/날짜의 십의자리는 3까지 사용하니깐, Register 2 Bit만 사용하고 그에 따른 DECODE7SEG 2Input을 만들어서 사용했습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td>
+
+``` verilog
+...
+// DIGITALCLOCK
+wire [3:0] MAIN_SEG0;
+wire [2:0] MAIN_SEG1;
+wire [3:0] MAIN_SEG2;
+wire [2:0] MAIN_SEG3;
+wire [3:0] MAIN_SEG4;
+wire [2:0] MAIN_SEG5;
+wire [3:0] MAIN_SEG6;
+wire [2:0] MAIN_SEG7;
+
+// STOPWATCH
+wire [3:0] SUB_SEG0;
+wire [2:0] SUB_SEG1;
+wire [3:0] SUB_SEG2;
+wire [2:0] SUB_SEG3;
+wire [3:0] SUB_SEG4;
+wire [2:0] SUB_SEG5;
+wire [3:0] SUB_SEG6;
+wire [2:0] SUB_SEG7;
+
+// SET_CLOCK (,SET_ALARM)
+wire [3:0] SET_SEC0;
+wire [2:0] SET_SEC1;
+wire [3:0] SET_MIN0;
+wire [2:0] SET_MIN1;
+wire [3:0] SET_HOUR0;
+wire [2:0] SET_HOUR1;
+wire [3:0] SET_DAY0;
+wire [2:0] SET_DAY1;
+...
+```    
+  </td>
+  <td>
+
+``` verilog
+...
+// DIGITALCLOCK
+wire [3:0] MAIN_SEG0;
+wire [2:0] MAIN_SEG1;
+wire [3:0] MAIN_SEG2;
+wire [2:0] MAIN_SEG3;
+wire [3:0] MAIN_SEG4;
+wire [1:0] MAIN_SEG5;
+wire [3:0] MAIN_SEG6;
+wire [1:0] MAIN_SEG7;
+
+// STOPWATCH
+wire [3:0] SUB_SEG0;
+wire [2:0] SUB_SEG1;
+wire [3:0] SUB_SEG2;
+wire [2:0] SUB_SEG3;
+wire [3:0] SUB_SEG4;
+wire [1:0] SUB_SEG5;
+wire [3:0] SUB_SEG6;
+wire [1:0] SUB_SEG7;
+
+// SET_CLOCK (,SET_ALARM)
+wire [3:0] SET_SEC0;
+wire [2:0] SET_SEC1;
+wire [3:0] SET_MIN0;
+wire [2:0] SET_MIN1;
+wire [3:0] SET_HOUR0;
+wire [1:0] SET_HOUR1;
+wire [3:0] SET_DAY0;
+wire [1:0] SET_DAY1;
+...
+```    
+  </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><strong>시간/날짜의 십의자리 2bit 사용</strong></td>
+  </tr>
+</table>
+
+<table align="center">
+  <tr>
+    <td>
+
+``` verilog
+module DECODE7SEG_2IN(/*AUTOARG*/
+              // Outputs
+              OUT,
+              // Inputs
+              IN
+              );
+
+  input [1:0] IN;
+  output [6:0] OUT;
+
+  wire       i1 = IN[1];
+  wire       i0 = IN[0];
+
+  assign OUT[6] = ~i1;
+  assign OUT[5] = i1 | i0;
+  assign OUT[4] = i0;
+  assign OUT[3] = ~i1 & i0;
+  assign OUT[2] = i1 & ~i0;
+  assign OUT[1] = 1'b0;
+  assign OUT[0] = ~i1 & i0;
+
+endmodule
+```
+      
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><strong>2 Input DECODE7SEG</strong></td>
+  </tr>
+</table>
+
+&nbsp; Synthesis 이후, 이전과 마찬가지로 DCODE7SEG 부분의 Schematic을 비교했습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 3. DECODE7SEG" src="https://github.com/user-attachments/assets/20625814-47a6-45e8-8937-0d2c41f59ac4" /></td>
+    <td align="center"><img width="100%" alt="Version 4. DECODE7SEG" src="https://github.com/user-attachments/assets/6b6a4096-976a-4292-987e-9e5acba2a8f5" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Version 3. DECODE7SEG</strong></td>
+    <td align="center"><strong>Version 4. DECODE7SEG</strong></td>
+  </tr>
+</table>
+
+&nbsp;다음은 `report_area`와 `report_power`의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 4. report_area" src="https://github.com/user-attachments/assets/8545d338-ab78-4f6c-bcfc-54bef6f899ba" /></td>
+    <td align="center"><img width="100%" alt="Version 4. report_power" src="https://github.com/user-attachments/assets/a49d4e48-0717-407a-9171-dc4d65e68f2c" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+report_area
+```
+      
+  </td>
+    <td align="center">
+
+```
+report_power
+```
+      
+  </td>  
+  </tr>
+</table>
+
+&nbsp;Version 3 -> Version 4로의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">1ns</td>
+    <td align="center">49.63uW -> 41.72uW</td>
+    <td align="center">918.37 -> 789.58</td>
+  </tr>
+</table>
+
+### Version 5
+
+&nbsp; 이제 Combinational Logic만 줄이다 보니까, Register를 줄이는 것이 훨씬 더 면적이 줄어드는 것을 체감했습니다. <br/>
+영혼까지 Comb를 줄여서 더 이상 줄일 것이 없었습니다. <br/>
+그래서, 현재 시간을 BCD 카운터를 통해 DECODE7SEG로 Input을 보내고 있었는데, 해당 BCD 카운터를 Binary 카운터로 변경하는 것이 더 Register를 적게 잡아 먹을거라 생각하고 수정했습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td>
+
+``` verilog
+...
+wire [3:0] seg_sec0;
+wire [2:0] seg_sec1;
+wire [3:0] seg_min0;
+wire [2:0] seg_min1;
+wire [3:0] seg_hour0;
+wire [1:0] seg_hour1;
+wire [3:0] seg_date0;
+wire [1:0] seg_date1;
+...
+```
+      
+  </td>
+    <td>
+
+``` verilog
+...
+if(SECOND < 6'd59) SECOND <= SECOND + 6'd1;
+else begin
+  SECOND <= 6'd0;
+  if(MINUTE < 6'd59) MINUTE <= MINUTE + 6'd1;
+  else begin
+    MINUTE <= 6'd0;
+    if(HOUR < 5'd23) HOUR <= HOUR + 5'd1;
+    else begin
+      HOUR <= 5'd0;
+      if(DATE < 5'd31) DATE <= DATE + 5'd1;
+      else DATE <= 5'd1;
+        end
+...
+```
+    
+  </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2"><strong>BCD 카운터 -> Binary 카운터</strong></td>
+  </tr>
+</table>
+
+&nbsp; 해당 카운터 변경의 Schematic 비교는 다음과 같습니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 5. BCD Counter Schematic" src="https://github.com/user-attachments/assets/c9073886-defe-464c-bd95-e0a35d2dcdcc" /></td>
+    <td align="center"><img width="100%" alt="Version 5. Binary Counter Schematic" src="https://github.com/user-attachments/assets/df9b71f2-dc6b-4dbe-b023-7d8476872c2d" /></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>BCD Counter Schematic</strong></td>
+    <td align="center"><strong>Binary Counter Schematic</strong></td>
+  </tr>
+</table>
+
+&nbsp;다음은 `report_area`와 `report_power`의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><img width="100%" alt="Version 5. report_area" src="https://github.com/user-attachments/assets/bd046498-3c30-4f42-88dc-04fe938961f4" /></td>
+    <td align="center"><img width="100%" alt="Version 5. report_power" src="https://github.com/user-attachments/assets/27963294-3545-44b3-b481-e1940413bef1" /></td>
+  </tr>
+  <tr>
+    <td align="center">
+
+```
+report_area
+```
+      
+  </td>
+    <td align="center">
+
+```
+report_power
+```
+      
+  </td>  
+  </tr>
+</table>
+
+&nbsp;Version 4 -> Version 5로의 결과입니다. <br/>
+
+<table align="center">
+  <tr>
+    <td align="center"><strong>Performance</strong></td>
+    <td align="center"><strong>Power</strong></td>
+    <td align="center"><strong>Area</strong></td>
+  </tr>
+  <tr>
+    <td align="center">1ns</td>
+    <td align="center">41.72uW -> 35.52uW</td>
+    <td align="center">789.58 -> 756.45</td>
+  </tr>
+</table>
+
