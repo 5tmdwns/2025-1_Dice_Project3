@@ -1,5 +1,7 @@
 <p align="center">
-  <h1 align="center">디지털시계 RTL 기반 Synthesis 최적화✨</h1>
+  <h1 align="center">Design Compiler를 활용한 디지털시계 PPA 최적화
+<img width="1221" height="105" alt="image" src="https://github.com/user-attachments/assets/1694e05e-55ac-42f6-be45-df57b0661bb8" />
+✨</h1>
 </p>
 
 ## Index ⭐️
